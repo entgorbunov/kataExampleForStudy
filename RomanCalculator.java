@@ -1,4 +1,3 @@
-import java.util.Locale;
 import java.util.Scanner;
 
 public class GeneralCalculator {
@@ -8,6 +7,16 @@ public class GeneralCalculator {
 
     private static boolean isRomanNumber(String number) {
         return number.matches("[IXVXLCDM]+");
+        /*
+        В регулярном выражении [IVXLCDM]+:
+
+        [IVXLCDM] - означает любой символ из указанного набора (I, V, X, L, C, D, M).
+        + - означает, что предшествующий элемент (в данном случае [IVXLCDM]) должен встретиться один или несколько раз.
+
+        Если использовать просто IVXLCDM, то это будет соответствовать только одному символу из набора. Например, если
+        просто использовать I, то будет проверяться только строка, состоящая из одной римской цифры "I". Однако, выражение
+        [IVXLCDM]+ позволяет проверять строки, состоящие из одной или нескольких римских цифр, например, "VIII" или "XLII".
+         */
     }
 
     private static boolean isRomanExpression(String expression) {
@@ -27,6 +36,23 @@ public class GeneralCalculator {
     private static boolean isArabicExpression(String expression) {
         String[] tokens = expression.split(" ");
         return isArabicNumber(tokens[0]) && isArabicNumber(tokens[2]);
+    }
+
+    public static boolean isMixedArabicWithRoman(String expression) {
+        String[] tokens = expression.split(" ");
+        if (tokens.length != 3) {
+            return false;
+        }
+
+        String firstOperand = tokens[0];
+        String secondOperand = tokens[2];
+
+        boolean isArabicFirstOperand = isArabicNumber(firstOperand);
+        boolean isArabicSecondOperand = isArabicNumber(secondOperand);
+        boolean isRomanFirstOperand = isRomanNumber(firstOperand);
+        boolean isRomanSecondOperand = isRomanNumber(secondOperand);
+
+        return (!isArabicFirstOperand || !isRomanSecondOperand) && (!isRomanFirstOperand || !isArabicSecondOperand);
     }
 
     public static String toRoman(int n) {
@@ -130,17 +156,30 @@ public class GeneralCalculator {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введите арифметическое выражение: ");
         String stringArithmeticExpression = scanner.nextLine();
-
-        String result;
-        if (isRomanExpression(stringArithmeticExpression)) {
-            result = RomanCalculator(stringArithmeticExpression);
-        } else if (isArabicExpression(stringArithmeticExpression)) {
-            result = ArabicCalculator(stringArithmeticExpression);
-        } else {
-            System.out.println("Некорректное выражение. Возможно, вы ввели римское число из нижнего регистра или поставили перед римским числом знак '-', что недопустимо");
+        if (!isMixedArabicWithRoman(stringArithmeticExpression)) {
+            System.out.println("Некорректное выражение. Возможно, вы смешали арабские цифры с римскими");
             return;
         }
 
-        System.out.println("Результат: " + result);
+        String result;
+
+        try {
+            if (isRomanExpression(stringArithmeticExpression)) {
+                result = RomanCalculator(stringArithmeticExpression);
+            } else if (isArabicExpression(stringArithmeticExpression)) {
+                result = ArabicCalculator(stringArithmeticExpression);
+            } else {
+                System.out.println("Некорректное выражение. Возможно, вы ввели римское число из нижнего регистра\n" +
+                        "или поставили перед римским числом знак '-', что недопустимо");
+                return;
+            }
+            System.out.println("Результат: " + result);
+        } catch (IllegalArgumentException | ArithmeticException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+
+
+
+
     }
 }
