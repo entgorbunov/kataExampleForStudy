@@ -1,14 +1,36 @@
-
+import java.util.Locale;
 import java.util.Scanner;
 
-public class RomanCalculator {
-
+public class GeneralCalculator {
 
     private static final String[] ROMAN_NUMBERS = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
     private static final int[] ARABIC_NUMBERS = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
 
+    private static boolean isRomanNumber(String number) {
+        return number.matches("[IXVXLCDM]+");
+    }
+
+    private static boolean isRomanExpression(String expression) {
+        String[] tokens = expression.split(" ");
+        return isRomanNumber(tokens[0]) && isRomanNumber(tokens[2]);
+    }
+
+    private static boolean isArabicNumber(String number) {
+        try {
+            Integer.parseInt(number);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static boolean isArabicExpression(String expression) {
+        String[] tokens = expression.split(" ");
+        return isArabicNumber(tokens[0]) && isArabicNumber(tokens[2]);
+    }
 
     public static String toRoman(int n) {
+
         int remainingValue = n;
         StringBuilder result = new StringBuilder();
 
@@ -22,21 +44,21 @@ public class RomanCalculator {
         return result.toString();
     }
 
-
     public static int fromRoman(String romanNumeral) {
         String remainingValue = romanNumeral;
         int result = 0;
 
-        for(int i = 0; i<ROMAN_NUMBERS.length; i++) {
-            while(remainingValue.startsWith(ROMAN_NUMBERS[i])) {
-                remainingValue = remainingValue.substring(ROMAN_NUMBERS[i].length(), remainingValue.length());
+        for (int i = 0; i < ROMAN_NUMBERS.length; i++) {
+            while (remainingValue.startsWith(ROMAN_NUMBERS[i])) {
+                remainingValue = remainingValue.substring(ROMAN_NUMBERS[i].length());
                 result += ARABIC_NUMBERS[i];
             }
         }
         return result;
     }
-    public static String RomanCalculator(String input) {
-        String[] tokens = input.split(" ");
+
+    public static String RomanCalculator(String romanExpression) {
+        String[] tokens = romanExpression.split(" ");
 
         if (tokens.length != 3) {
             throw new IllegalArgumentException("Некорректное выражение");
@@ -44,7 +66,9 @@ public class RomanCalculator {
 
         int firstOperand = fromRoman(tokens[0]);
         int secondOperand = fromRoman(tokens[2]);
-
+        if (firstOperand < 1 || firstOperand > 10 || secondOperand < 1 || secondOperand > 10) {
+            throw new IllegalArgumentException("Числа должны быть в диапазоне от 0 до 10");
+        }
         int result;
         String operator = tokens[1];
         switch (operator) {
@@ -67,11 +91,8 @@ public class RomanCalculator {
         return toRoman(result);
     }
 
-
-
-    public static String ArabicCalculator(String input) {
-
-        String[] tokens = input.split(" ");
+    public static String ArabicCalculator(String arabicExpression) {
+        String[] tokens = arabicExpression.split(" ");
         if (tokens.length != 3) {
             throw new IllegalArgumentException("Некорректное выражение");
         }
@@ -83,6 +104,9 @@ public class RomanCalculator {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Некорректные числа");
         }
+        if (firstOperand < 1 || firstOperand > 10 || secondOperand < 1 || secondOperand > 10) {
+            throw new IllegalArgumentException("Числа должны быть в диапазоне от 1 до 10");
+        }
 
         int result;
         String operator = tokens[1];
@@ -93,35 +117,30 @@ public class RomanCalculator {
             case "/" -> {
                 if (secondOperand == 0) {
                     throw new ArithmeticException("Деление на ноль");
-                } result = firstOperand / secondOperand;
+                }
+                result = firstOperand / secondOperand;
             }
             default -> throw new IllegalArgumentException("Некорректный оператор");
-        };
+        }
 
         return String.valueOf(result);
     }
 
-
     public static void main(String[] args) {
-        Scanner input1 = new Scanner(System.in);
-        System.out.println("Выберите 1 или 2");
-        System.out.println("1.Калькулятор римских цифр");
-        System.out.println("2.Калькулятор арабских цифр");
-        int chooseVariant = input1.nextInt();
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Введите арифметическое выражение: ");
+        String stringArithmeticExpression = scanner.nextLine();
 
-        if (chooseVariant == 1) {
-            Scanner input2 = new Scanner(System.in);
-            System.out.print("Введите арифметическое выражение римскими цифрами: ");
-            String result = RomanCalculator(input2.nextLine());
-            System.out.println("Результат: " + result);
-        } else if (chooseVariant == 2) {
-            Scanner input3 = new Scanner(System.in);
-            System.out.print("Введите арифметическое выражение арабскими цифрами: ");
-            String result = ArabicCalculator(input3.nextLine());
-            System.out.println("Результат: " + result);
-        } else System.out.println("Вы неверно выбрали вариант");
+        String result;
+        if (isRomanExpression(stringArithmeticExpression)) {
+            result = RomanCalculator(stringArithmeticExpression);
+        } else if (isArabicExpression(stringArithmeticExpression)) {
+            result = ArabicCalculator(stringArithmeticExpression);
+        } else {
+            System.out.println("Некорректное выражение. Возможно, вы ввели римское число из нижнего регистра или поставили перед римским числом знак '-', что недопустимо");
+            return;
+        }
 
-
+        System.out.println("Результат: " + result);
     }
 }
-
